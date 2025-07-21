@@ -22,5 +22,6 @@ public class TrackerDataConstant {
     public static final String NOT_ENOUGH_DATA_TO_PREDICT = "Not enough data to predict next period.";
     public static final String INVALID_EMAIL = "Email is required";
     public static final String NO_CYCLE_DATA_FOUND = "No cycle data found. Please start tracking your period first!";
+    public static final String INVALID_OR_EXPIRED_TOKEN = "Invalid or expired Firebase ID token.";
         
 }

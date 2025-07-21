@@ -96,6 +96,6 @@ public class CycleService {
     private User validateAndGetUser(String email) {
         validateEmail(email);
         return userRepo.findById(email)
-                .orElseThrow(() -> new NoSuchElementException("User not found with email: " + email));
+                .orElseThrow(() -> new NoSuchElementException(TrackerDataConstant.NOT_FOUND + ": " + email));
     }
 }
