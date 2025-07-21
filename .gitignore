@@ -33,6 +33,5 @@ build/
 .vscode/
 
 ### Custom ###
-/node_modules
 /get-firebase-token.js
 /src/main/resources/firebase-service-account.json
