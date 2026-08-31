@@ -1,0 +1,15 @@
+.git
+.gitignore
+.github
+.idea
+.vscode
+.mvn
+mvnw
+mvnw.cmd
+*.iml
+*.log
+.DS_Store
+.env
+.env.*
+target
+src/main/resources/firebase-service-account.json
