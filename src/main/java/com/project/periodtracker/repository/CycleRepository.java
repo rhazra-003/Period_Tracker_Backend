@@ -15,6 +15,8 @@ public interface CycleRepository extends JpaRepository<CycleEntry, Long> {
     
     List<CycleEntry> findByUserEmailOrderByPeriodStartDateDesc(String email, Pageable pageable);
 
+    java.util.Optional<CycleEntry> findByIdAndUserEmail(Long id, String email);
+
     @Query(TrackerSQLConstant.FETCH_LAST_FOUR_PERIOD_DATES)
 
     List<LocalDate> findLastFourPeriods(String email);

@@ -56,6 +56,7 @@ public class CycleService {
         for (int i = 0; i < cycles.size(); i++) {
             Map<String, Object> map = new HashMap<>();
             CycleEntry current = cycles.get(i);
+            map.put("id", current.getId());
             map.put("periodStart", current.getPeriodStartDate());
             map.put("duration", current.getDurationInDays());
 
@@ -85,6 +86,18 @@ public class CycleService {
 
         long avg = Math.round(gaps.stream().mapToLong(x -> x).average().orElse(0));
         return dates.get(0).plusDays(avg);
+    }
+
+    public void deleteCycle(String email, Long id) {
+        validateEmail(email);
+        if (id == null) {
+            throw new IllegalArgumentException(TrackerDataConstant.NOT_FOUND + ": cycle id");
+        }
+
+        CycleEntry cycle = cycleRepo.findByIdAndUserEmail(id, email)
+                .orElseThrow(() -> new NoSuchElementException(TrackerDataConstant.NOT_FOUND + ": cycle id " + id));
+
+        cycleRepo.delete(cycle);
     }
 
     private void validateEmail(String email) {

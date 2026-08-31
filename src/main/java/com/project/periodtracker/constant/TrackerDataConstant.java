@@ -10,6 +10,7 @@ public class TrackerDataConstant {
     public static final String NOT_FOUND = "Not Found!";
     public static final String INTERNAL_SERVER_ERROR = "Internal Server Error!";
     public static final String CYCLE_TRACKED = "Your cycle is tracked!";
+    public static final String CYCLE_DELETED = "Cycle entry deleted successfully!";
     public static final String NEXT_PERIOD = "nextPeriod";
     public static final String NAME = "Name";
     public static final String EMAIL = "email";
