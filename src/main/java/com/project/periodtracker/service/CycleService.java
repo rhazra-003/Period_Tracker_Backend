@@ -72,20 +72,36 @@ public class CycleService {
     }
 
     public LocalDate predictNextPeriod(String email) {
+        return predictCycleDetails(email).get(TrackerDataConstant.NEXT_PERIOD);
+    }
+
+    public Map<String, LocalDate> predictCycleDetails(String email) {
         validateEmail(email);
 
-        List<LocalDate> dates = cycleRepo.findLastFourPeriods(email);
+        List<LocalDate> dates = new ArrayList<>(cycleRepo.findLastFourPeriods(email));
         if (dates.size() < 2) {
             throw new IllegalArgumentException(TrackerDataConstant.NOT_ENOUGH_DATA_TO_PREDICT);
         }
 
+        dates.sort(Comparator.naturalOrder());
+
         List<Long> gaps = new ArrayList<>();
         for (int i = 1; i < dates.size(); i++) {
-            gaps.add(ChronoUnit.DAYS.between(dates.get(i), dates.get(i - 1)));
+            gaps.add(ChronoUnit.DAYS.between(dates.get(i - 1), dates.get(i)));
         }
 
-        long avg = Math.round(gaps.stream().mapToLong(x -> x).average().orElse(0));
-        return dates.get(0).plusDays(avg);
+        long avgCycleLength = Math.round(gaps.stream().mapToLong(x -> x).average().orElse(0));
+        LocalDate nextPeriod = dates.get(dates.size() - 1).plusDays(avgCycleLength);
+        LocalDate ovulationDate = nextPeriod.minusDays(14);
+        LocalDate fertileWindowStart = ovulationDate.minusDays(3);
+        LocalDate fertileWindowEnd = ovulationDate.plusDays(1);
+
+        Map<String, LocalDate> prediction = new LinkedHashMap<>();
+        prediction.put(TrackerDataConstant.NEXT_PERIOD, nextPeriod);
+        prediction.put(TrackerDataConstant.OVULATION_DATE, ovulationDate);
+        prediction.put(TrackerDataConstant.FERTILE_WINDOW_START, fertileWindowStart);
+        prediction.put(TrackerDataConstant.FERTILE_WINDOW_END, fertileWindowEnd);
+        return prediction;
     }
 
     public void deleteCycle(String email, Long id) {

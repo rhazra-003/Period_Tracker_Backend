@@ -7,7 +7,10 @@ Spring Boot backend for the period tracker app. It uses Firebase Authentication 
 - Auto user creation on first authenticated request
 - Period tracking by start date and duration
 - Recent cycle history with pagination
-- Next period prediction based on cycle history
+- Smart cycle prediction based on the average of recent cycle lengths
+- Next expected period date prediction
+- Estimated ovulation date prediction
+- Fertile window prediction range based on ovulation timing
 - Delete a tracked cycle entry with ownership validation
 - CORS support for local and deployed frontend origins
 - Environment-based configuration for local and cloud deployment
@@ -83,9 +86,15 @@ All endpoints below require a valid Firebase token in the Authorization header u
 - `GET /api/cycles/recent?page=0&size=10`
 - Returns the recent cycles for the logged-in user
 
-### Get next period prediction
+### Get cycle predictions
 - `GET /api/cycles/predict`
-- Returns the next predicted cycle date
+- Returns the next predicted period date along with:
+  - `nextPeriod`
+  - `ovulationDate`
+  - `fertileWindowStart`
+  - `fertileWindowEnd`
+- Example response:
+  - `{"nextPeriod":"2026-09-18","ovulationDate":"2026-09-04","fertileWindowStart":"2026-09-01","fertileWindowEnd":"2026-09-05"}`
 
 ### Delete a tracked cycle entry
 - `DELETE /api/cycles/{id}`

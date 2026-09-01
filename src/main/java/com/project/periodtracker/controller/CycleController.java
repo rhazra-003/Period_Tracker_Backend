@@ -70,8 +70,8 @@ public class CycleController {
     public ResponseEntity<?> predict() {
         String email = getAuthenticatedEmail();
         try {
-            LocalDate prediction = cycleService.predictNextPeriod(email);
-            return ResponseEntity.ok(Map.of(TrackerDataConstant.NEXT_PERIOD, prediction));
+            Map<String, LocalDate> prediction = cycleService.predictCycleDetails(email);
+            return ResponseEntity.ok(prediction);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

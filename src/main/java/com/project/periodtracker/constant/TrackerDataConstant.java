@@ -12,6 +12,9 @@ public class TrackerDataConstant {
     public static final String CYCLE_TRACKED = "Your cycle is tracked!";
     public static final String CYCLE_DELETED = "Cycle entry deleted successfully!";
     public static final String NEXT_PERIOD = "nextPeriod";
+    public static final String OVULATION_DATE = "ovulationDate";
+    public static final String FERTILE_WINDOW_START = "fertileWindowStart";
+    public static final String FERTILE_WINDOW_END = "fertileWindowEnd";
     public static final String NAME = "Name";
     public static final String EMAIL = "email";
     public static final String USER_ID = "user_id";
