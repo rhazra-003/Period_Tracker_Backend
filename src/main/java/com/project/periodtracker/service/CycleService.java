@@ -1,6 +1,7 @@
 package com.project.periodtracker.service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -79,7 +80,7 @@ public class CycleService {
         validateEmail(email);
 
         List<LocalDate> dates = new ArrayList<>(cycleRepo.findLastFourPeriods(email));
-        if (dates.size() < 2) {
+        if (dates.size() < 3) {
             throw new IllegalArgumentException(TrackerDataConstant.NOT_ENOUGH_DATA_TO_PREDICT);
         }
 
@@ -93,8 +94,8 @@ public class CycleService {
         long avgCycleLength = Math.round(gaps.stream().mapToLong(x -> x).average().orElse(0));
         LocalDate nextPeriod = dates.get(dates.size() - 1).plusDays(avgCycleLength);
         LocalDate ovulationDate = nextPeriod.minusDays(14);
-        LocalDate fertileWindowStart = ovulationDate.minusDays(3);
-        LocalDate fertileWindowEnd = ovulationDate.plusDays(1);
+        LocalDate fertileWindowStart = ovulationDate.minusDays(2);
+        LocalDate fertileWindowEnd = ovulationDate.plusDays(2);
 
         Map<String, LocalDate> prediction = new LinkedHashMap<>();
         prediction.put(TrackerDataConstant.NEXT_PERIOD, nextPeriod);
@@ -102,6 +103,71 @@ public class CycleService {
         prediction.put(TrackerDataConstant.FERTILE_WINDOW_START, fertileWindowStart);
         prediction.put(TrackerDataConstant.FERTILE_WINDOW_END, fertileWindowEnd);
         return prediction;
+    }
+
+    public Map<String, Object> predictMonthlyCycle(String email, YearMonth month) {
+        validateEmail(email);
+        if (month == null) {
+            throw new IllegalArgumentException(TrackerDataConstant.INVALID_MONTH);
+        }
+
+        List<CycleEntry> cycles = new ArrayList<>(cycleRepo.findLastFourCycles(email));
+        if (cycles.size() < 3) {
+            throw new IllegalArgumentException(TrackerDataConstant.NOT_ENOUGH_DATA_TO_PREDICT);
+        }
+
+        cycles.sort(Comparator.comparing(CycleEntry::getPeriodStartDate));
+        List<Long> cycleGaps = new ArrayList<>();
+        for (int i = 1; i < cycles.size(); i++) {
+            cycleGaps.add(ChronoUnit.DAYS.between(
+                    cycles.get(i - 1).getPeriodStartDate(), cycles.get(i).getPeriodStartDate()));
+        }
+
+        long averageCycleLength = Math.round(cycleGaps.stream().mapToLong(value -> value).average().orElse(0));
+        int averagePeriodDuration = (int) Math.round(cycles.stream()
+                .mapToInt(CycleEntry::getDurationInDays)
+                .average()
+                .orElse(5));
+
+        LocalDate monthStart = month.atDay(1);
+        LocalDate monthEnd = month.atEndOfMonth();
+        LocalDate cycleStart = cycles.get(cycles.size() - 1).getPeriodStartDate();
+        while (cycleStart.isAfter(monthStart)) {
+            cycleStart = cycleStart.minusDays(averageCycleLength);
+        }
+
+        List<Map<String, Object>> phases = new ArrayList<>();
+        while (!cycleStart.isAfter(monthEnd)) {
+            LocalDate nextPeriod = cycleStart.plusDays(averageCycleLength);
+            LocalDate menstruationEnd = cycleStart.plusDays(averagePeriodDuration - 1L);
+            LocalDate ovulation = nextPeriod.minusDays(14);
+
+            addPhaseIfInMonth(phases, "Menstruation", cycleStart, menstruationEnd, monthStart, monthEnd);
+            addPhaseIfInMonth(phases, "Follicular Phase", menstruationEnd.plusDays(1), ovulation.minusDays(1), monthStart, monthEnd);
+            addPhaseIfInMonth(phases, "Ovulation", ovulation, ovulation, monthStart, monthEnd);
+            addPhaseIfInMonth(phases, "Luteal Phase", ovulation.plusDays(1), nextPeriod.minusDays(1), monthStart, monthEnd);
+
+            cycleStart = nextPeriod;
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("month", month.toString());
+        result.put("averageCycleLength", averageCycleLength);
+        result.put("phases", phases);
+        return result;
+    }
+
+    private void addPhaseIfInMonth(List<Map<String, Object>> phases, String name, LocalDate start,
+            LocalDate end, LocalDate monthStart, LocalDate monthEnd) {
+        if (start.isAfter(end) || end.isBefore(monthStart) || start.isAfter(monthEnd)) {
+            return;
+        }
+
+        Map<String, Object> phase = new LinkedHashMap<>();
+        phase.put("name", name);
+        phase.put("start", start.isBefore(monthStart) ? monthStart : start);
+        phase.put("end", end.isAfter(monthEnd) ? monthEnd : end);
+        phases.add(phase);
     }
 
     public void deleteCycle(String email, Long id) {

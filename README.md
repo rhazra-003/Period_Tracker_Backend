@@ -8,9 +8,12 @@ Spring Boot backend for the period tracker app. It uses Firebase Authentication 
 - Period tracking by start date and duration
 - Recent cycle history with pagination
 - Smart cycle prediction based on the average of recent cycle lengths
-- Next expected period date prediction
-- Estimated ovulation date prediction
-- Fertile window prediction range based on ovulation timing
+- Next expected period date prediction based on the average cycle length
+- Estimated ovulation date prediction using a 14-day luteal-phase estimate
+- Fertile window prediction range around the estimated ovulation date
+- Future monthly phase forecast using the latest 4 cycle records
+- Menstruation, follicular, ovulation, and luteal phase date ranges for a selected month
+- Minimum-data protection requiring at least 3 period dates for predictions and monthly forecasts
 - Delete a tracked cycle entry with ownership validation
 - CORS support for local and deployed frontend origins
 - Environment-based configuration for local and cloud deployment
@@ -88,6 +91,7 @@ All endpoints below require a valid Firebase token in the Authorization header u
 
 ### Get cycle predictions
 - `GET /api/cycles/predict`
+- Requires at least 3 recorded period dates.
 - Returns the next predicted period date along with:
   - `nextPeriod`
   - `ovulationDate`
@@ -95,6 +99,28 @@ All endpoints below require a valid Firebase token in the Authorization header u
   - `fertileWindowEnd`
 - Example response:
   - `{"nextPeriod":"2026-09-18","ovulationDate":"2026-09-04","fertileWindowStart":"2026-09-01","fertileWindowEnd":"2026-09-05"}`
+- With fewer than 3 records, returns a bad-request error:
+  - `{"error":"Record at least the last 3 period dates to unlock predictions."}`
+
+### Predict phases for a future month
+- `GET /api/cycles/predict/month?month=YYYY-MM`
+- Requires at least 3 recorded period dates.
+- Uses the average cycle length from the latest 4 period dates and the average recorded period duration.
+- Returns phase segments overlapping the selected month for:
+  - menstruation
+  - follicular phase
+  - ovulation
+  - luteal phase
+- Phase calculations use the average gap between the latest 4 period dates and the average recorded period duration.
+- Date ranges are clipped to the selected calendar month.
+- Example:
+  - `GET /api/cycles/predict/month?month=2026-10`
+
+### Monthly forecast response
+- `month` — selected month in `YYYY-MM` format
+- `averageCycleLength` — average cycle length in days
+- `phases` — phase objects containing `name`, `start`, and `end` dates
+- Invalid month values must use the `YYYY-MM` format.
 
 ### Delete a tracked cycle entry
 - `DELETE /api/cycles/{id}`
@@ -104,6 +130,7 @@ All endpoints below require a valid Firebase token in the Authorization header u
 The backend uses consistent JSON responses like:
 - success: `{"message":"Cycle entry deleted successfully!"}`
 - error: `{"error":"Some validation message"}`
+- Prediction endpoints return an informative minimum-data error until at least 3 period dates are recorded.
 
 ## Local development
 1. Install Java 17+

@@ -20,4 +20,12 @@ public interface CycleRepository extends JpaRepository<CycleEntry, Long> {
     @Query(TrackerSQLConstant.FETCH_LAST_FOUR_PERIOD_DATES)
 
     List<LocalDate> findLastFourPeriods(String email);
+
+    @Query("""
+        SELECT c FROM CycleEntry c
+        WHERE c.user.email = :email
+        ORDER BY c.periodStartDate DESC
+        LIMIT 4
+        """)
+    List<CycleEntry> findLastFourCycles(String email);
 }

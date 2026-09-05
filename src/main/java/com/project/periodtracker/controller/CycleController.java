@@ -2,6 +2,7 @@ package com.project.periodtracker.controller;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -72,6 +73,18 @@ public class CycleController {
         try {
             Map<String, LocalDate> prediction = cycleService.predictCycleDetails(email);
             return ResponseEntity.ok(prediction);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/predict/month")
+    public ResponseEntity<?> predictMonthly(@RequestParam String month) {
+        String email = getAuthenticatedEmail();
+        try {
+            return ResponseEntity.ok(cycleService.predictMonthlyCycle(email, YearMonth.parse(month)));
+        } catch (java.time.format.DateTimeParseException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", TrackerDataConstant.INVALID_MONTH));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

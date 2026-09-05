@@ -23,7 +23,8 @@ public class TrackerDataConstant {
     public static final String INVALID_PERIOD_START_DATE = "Invalid period start date.";
     public static final String INVALID_PERIOD_DURATION = "Period duration must be greater than 0.";
     public static final String INVALID_PAGINATION_PARAMETERS = "Invalid pagination parameters.";
-    public static final String NOT_ENOUGH_DATA_TO_PREDICT = "Not enough data to predict next period.";
+    public static final String INVALID_MONTH = "Month must use YYYY-MM format.";
+    public static final String NOT_ENOUGH_DATA_TO_PREDICT = "Record at least the last 3 period dates to unlock predictions.";
     public static final String INVALID_EMAIL = "Email is required";
     public static final String NO_CYCLE_DATA_FOUND = "No cycle data found. Please start tracking your period first!";
     public static final String INVALID_OR_EXPIRED_TOKEN = "Invalid or expired Firebase ID token.";
